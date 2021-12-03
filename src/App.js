@@ -1,47 +1,39 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import Searchbar from './components/Searchbar/Searchbar';
 import ImageGallery from './components/ImageGallery/ImageGallery';
 import Modal from './components/Modal/Modal';
 import './App.css';
 
-class App extends Component {
-  state = {
-    imageSearch: '',
-    largeImageURL: '',
-    showModal: false,
+function App() {
+  const [imageSearch, setImageSearch] = useState('');
+  const [largeImage, setLargeImage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
-  };
-
-  handleFormSubmit = imageSearch => {
-    this.setState({ imageSearch });
+  const handleFormSubmit = imageSearch => {
+    setImageSearch(imageSearch);
     console.log(imageSearch);
   };
 
-  setLargeImage = ({ largeImageURL }) => {
-    this.setState({ largeImageURL, showModal: true });
+  const setLargeImageURL = largeImage => {
+    setLargeImage(largeImage);
+    setShowModal(true);
   };
 
-  render() {
-    return (
-      <div>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery
-          imageSearch={this.state.imageSearch}
-          onClick={this.setLargeImage}
-        />
-        {this.state.showModal && (
-          <Modal onClose={this.toggleModal}>
-            <img src={this.state.largeImageURL} alt="" />
-          </Modal>
-        )}
-      </div>
-    );
-  }
+  return (
+    <div>
+      <Searchbar onSubmit={handleFormSubmit} />
+      <ImageGallery imageSearch={imageSearch} onClick={setLargeImageURL} />
+      {showModal && (
+        <Modal onClose={toggleModal}>
+          <img src={largeImage} alt="" />
+        </Modal>
+      )}
+    </div>
+  );
 }
 
 export default App;
