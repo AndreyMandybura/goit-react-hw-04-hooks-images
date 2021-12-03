@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import ApiService from '../../services/api';
 import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 import Button from '../Button/Button';
@@ -8,91 +8,85 @@ import s from './ImageGallery.module.css';
 
 const apiService = new ApiService();
 
-class ImageGallery extends Component {
-  state = {
-    gallery: [],
-    error: null,
-    status: 'idle',
-    page: 1,
+function ImageGallery({ imageSearch, onClick }) {
+  const [gallery, setGallery] = useState([]);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (!imageSearch) {
+      return;
+    }
+    setStatus('pending');
+    apiService
+      .fetchImage(imageSearch)
+      .then(gallery => {
+        setGallery(gallery);
+        setStatus('resolved');
+      })
+      .catch(error => {
+        setError(error);
+        setStatus('rejected');
+      });
+  }, [imageSearch]);
+
+  useEffect(() => {
+    if (page === 1) {
+      return;
+    }
+    setStatus('pending');
+    apiService
+      .fetchImage(imageSearch, page)
+      .then(gallery => {
+        setGallery(prevState => [...prevState, ...gallery]);
+        setStatus('resolved');
+        document
+          .getElementById('btn')
+          .scrollIntoView({ block: 'center', behavior: 'smooth' });
+      })
+      .catch(error => {
+        setError(error);
+        setStatus('rejected');
+      });
+  }, [imageSearch, page]);
+
+  const handleOnLoadMoreClick = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    const prevName = prevProps.imageSearch;
-    const nextName = this.props.imageSearch;
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
-
-    if (prevName !== nextName) {
-      this.setState({ status: 'pending' });
-      apiService
-        .fetchImage(nextName)
-        .then(gallery => this.setState({ gallery, status: 'resolved' }))
-        .catch(error => this.setState({ error, status: 'rejected' }));
-    }
-
-    if (prevPage !== nextPage) {
-      this.setState({ status: 'pending' });
-      apiService
-        .fetchImage(prevName, this.state.page)
-        .then(gallery => {
-          this.setState({
-            gallery: [...prevState.gallery, ...gallery],
-            status: 'resolved',
-          });
-          document
-            .getElementById('btn')
-            .scrollIntoView({ block: 'center', behavior: 'smooth' });
-        })
-        .catch(error => this.setState({ error, status: 'rejected' }));
-    }
+  if (status === 'idle') {
+    return <div></div>;
   }
 
-  handleOnLoadMoreClick = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
+  if (status === 'pending') {
+    return (
+      <Loader
+        className={s.Loader}
+        type="Puff"
+        color="#00BFFF"
+        height={250}
+        width={250}
+        timeout={3000}
+      />
+    );
+  }
 
-  render() {
-    const { gallery, error, status } = this.state;
+  if (status === 'rejected') {
+    return <h1>{error.message}</h1>;
+  }
 
-    if (status === 'idle') {
-      return <div></div>;
-    }
-
-    if (status === 'pending') {
-      return (
-        <Loader
-          className={s.Loader}
-          type="Puff"
-          color="#00BFFF"
-          height={250}
-          width={250}
-          timeout={3000}
-        />
-      );
-    }
-
-    if (status === 'rejected') {
-      return <h1>{error.message}</h1>;
-    }
-
-    if (status === 'resolved') {
-      return (
-        <div className={s.GalleryBox}>
-          <ul className={s.ImageGallery}>
-            {gallery.map(img => (
-              <ImageGalleryItem
-                key={img.id}
-                img={img}
-                onClick={this.props.onClick}
-              />
-            ))}
-          </ul>
-          <Button onClick={this.handleOnLoadMoreClick} />
-        </div>
-      );
-    }
+  if (status === 'resolved') {
+    return (
+      <div className={s.GalleryBox}>
+        <ul className={s.ImageGallery}>
+          {gallery.map(img => (
+            <ImageGalleryItem key={img.id} img={img} onClick={onClick} />
+          ))}
+        </ul>
+        <Button onClick={handleOnLoadMoreClick} />
+      </div>
+    );
   }
 }
 
