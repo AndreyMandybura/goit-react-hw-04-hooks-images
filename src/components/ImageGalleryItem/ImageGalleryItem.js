@@ -6,19 +6,14 @@ function ImageGalleryItem({
   onClick,
 }) {
   return (
-    <li
-      className={s.ImageGalleryItem}
-      onClick={() => onClick({ largeImageURL })}
-    >
+    <li className={s.ImageGalleryItem} onClick={() => onClick(largeImageURL)}>
       <img className={s.ImageGalleryItem_image} src={webformatURL} alt={tags} />
     </li>
   );
 }
 
 ImageGalleryItem.propTypes = {
-  tags: PropTypes.string,
-  largeImageURL: PropTypes.string,
-  werformatURL: PropTypes.string,
+  img: PropTypes.object,
   onClick: PropTypes.func,
 };
 

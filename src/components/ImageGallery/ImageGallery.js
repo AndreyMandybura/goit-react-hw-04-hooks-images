@@ -91,8 +91,8 @@ function ImageGallery({ imageSearch, onClick }) {
 }
 
 ImageGallery.propTypes = {
-  gallery: PropTypes.arrayOf(PropTypes.object),
-  onClickImage: PropTypes.func,
+  imageSearch: PropTypes.string,
+  onClick: PropTypes.func,
 };
 
 export default ImageGallery;
